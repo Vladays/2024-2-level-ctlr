@@ -7,10 +7,6 @@
         {
             "name": "lab_6_pipeline",
             "coverage": 76
-        },
-        {
-            "name": "final_project",
-            "coverage": 0
         }
     ],
     "addons": [
