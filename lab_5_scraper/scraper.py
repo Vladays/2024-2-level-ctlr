@@ -73,7 +73,8 @@ class Config:
         Args:
             path_to_config (pathlib.Path): Path to configuration.
         """
-        config_dto = self._extract_config_content(path_to_config)
+        self.path_to_config = path_to_config
+        self._config_dto = self._extract_config_content()
         self._validate_config_content()
         self._seed_urls = self._config_dto.seed_urls
         self._num_articles = self._config_dto.total_articles
@@ -220,7 +221,7 @@ def make_request(url: str, config: Config) -> requests.models.Response:
     response = requests.get(url,
                             headers=config.get_headers(),
                             timeout=config.get_timeout(),
-                            verify=config.should_verify_certificate())
+                            verify=config.get_verify_certificate())
 
     response.raise_for_status()
     return response
