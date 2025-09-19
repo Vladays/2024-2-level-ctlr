@@ -32,35 +32,42 @@ class IncorrectSeedURLError(Exception):
     Raised when one or more seed URLs in the configuration are invalid.
     """
 
+
 class NumberOfArticlesOutOfRangeError(Exception):
     """
     Raised when the requested number of articles exceeds the allowed upper limit.
     """
+
 
 class IncorrectNumberOfArticlesError(Exception):
     """
     Raised when the number of articles to scrape is not a positive integer.
     """
 
+
 class IncorrectHeadersError(Exception):
     """
     Raised when headers provided in the configuration are not in a valid dictionary format.
     """
+
 
 class IncorrectEncodingError(Exception):
     """
     Raised when the specified encoding is not a valid non-empty string.
     """
 
+
 class IncorrectTimeoutError(Exception):
     """
     Raised when the timeout value is not an integer or falls outside the acceptable range.
     """
 
+
 class IncorrectVerifyError(Exception):
     """
     Raised when the certificate verification flag is not a boolean.
     """
+
 
 class Config:
     """
@@ -92,7 +99,7 @@ class Config:
         Returns:
             ConfigDTO: Config values
         """
-        with open(self.path_to_config, 'r', encoding='utf-8') as file:
+        with open(self.path_to_config, "r", encoding="utf-8") as file:
             config_data = json.load(file)
 
         return ConfigDTO(
@@ -102,27 +109,26 @@ class Config:
             encoding=config_data["encoding"],
             timeout=config_data["timeout"],
             should_verify_certificate=config_data["should_verify_certificate"],
-            headless_mode=config_data["headless_mode"])
+            headless_mode=config_data["headless_mode"],
+        )
 
     def _validate_config_content(self) -> None:
         """
         Ensure configuration parameters are not corrupt.
         """
-        url_pattern = re.compile(r'https?://(www\.)?.+')
+        url_pattern = re.compile(r"https?://(www\.)?.+")
         if not isinstance(self._seed_urls, list) or not self._seed_urls:
             raise IncorrectSeedURLError("seed_urls must be a non-empty list")
         for url in self._seed_urls:
             if not re.match(url_pattern, url):
                 raise IncorrectSeedURLError(f"Invalid seed URL: {url}")
 
-        if not isinstance(
-                self._total_articles,
-                int) or self._total_articles < 1:
-            raise IncorrectNumberOfArticlesError(
-                "total_articles must be an integer >= 1")
+        if not isinstance(self._total_articles, int) or self._total_articles < 1:
+            raise IncorrectNumberOfArticlesError("total_articles must be an integer >= 1")
         if self._total_articles > NUM_ARTICLES_UPPER_LIMIT:
             raise NumberOfArticlesOutOfRangeError(
-                f"total_articles must be <= {NUM_ARTICLES_UPPER_LIMIT}")
+                f"total_articles must be <= {NUM_ARTICLES_UPPER_LIMIT}"
+            )
 
         if not isinstance(self._headers, dict):
             raise IncorrectHeadersError("headers must be a dictionary")
@@ -131,14 +137,15 @@ class Config:
             raise IncorrectEncodingError("encoding must be a non-empty string")
 
         if not isinstance(self._timeout, int) or not (
-                TIMEOUT_LOWER_LIMIT <= self._timeout < TIMEOUT_UPPER_LIMIT):
+            TIMEOUT_LOWER_LIMIT <= self._timeout < TIMEOUT_UPPER_LIMIT
+        ):
             raise IncorrectTimeoutError(
                 f"""timeout must be an integer in range [{TIMEOUT_LOWER_LIMIT},
-                {TIMEOUT_UPPER_LIMIT})""")
+                {TIMEOUT_UPPER_LIMIT})"""
+            )
 
         if not isinstance(self._should_verify_certificate, bool):
-            raise IncorrectVerifyError(
-                "should_verify_certificate must be a boolean")
+            raise IncorrectVerifyError("should_verify_certificate must be a boolean")
 
         if not isinstance(self._headless_mode, bool):
             raise IncorrectVerifyError("headless_mode must be a boolean")
@@ -218,11 +225,13 @@ def make_request(url: str, config: Config) -> requests.models.Response:
     Returns:
         requests.models.Response: A response from a request
     """
-    response = requests.get(url,
-                            headers=config.get_headers(),
-                            timeout=config.get_timeout(),
-                            verify=config.get_verify_certificate())
-    
+    response = requests.get(
+        url,
+        headers=config.get_headers(),
+        timeout=config.get_timeout(),
+        verify=config.get_verify_certificate(),
+    )
+
     response.raise_for_status()
     return response
 
@@ -256,14 +265,15 @@ class Crawler:
             str: Url from HTML
         """
 
-        pattern = re.compile(
-            r'^https://www\.kchetverg\.ru/\d{4}/\d{2}/\d{2}/[\w\-]+/?$')
-        href = article_bs.get('href', '')
+        pattern = re.compile(r"^https://www\.kchetverg\.ru/\d{4}/\d{2}/\d{2}/[\w\-]+/?$")
+        href = article_bs.get("href", "")
 
+        href = article_bs.get("href")
+        if not isinstance(href, str):
+            return ""
         if pattern.match(href):
-              return href
-
-        return ''
+            return href
+        return ""
 
     def find_articles(self) -> None:
         """
@@ -281,15 +291,14 @@ class Crawler:
                 print(f"Error fetching {url}: {e}")
                 continue
 
-            soup = BeautifulSoup(response.text, 'html.parser')
+            soup = BeautifulSoup(response.text, "html.parser")
 
-            for a_tag in soup.find_all('a', href=True):
+            for a_tag in soup.find_all("a", href=True):
                 article_url = self._extract_url(a_tag)
                 if article_url and article_url not in self.urls:
                     self.urls.append(article_url)
                 if len(self.urls) >= max_articles:
                     break
-
 
     def get_search_urls(self) -> list:
         """
@@ -351,30 +360,24 @@ class HTMLParser:
             article_soup (bs4.BeautifulSoup): BeautifulSoup instance
         """
 
-        title_tag = article_soup.find('h1')
-        self.article.title = title_tag.get_text(
-            strip=True) if title_tag else 'NOT FOUND'
+        title_tag = article_soup.find("h1")
+        self.article.title = title_tag.get_text(strip=True) if title_tag else "NOT FOUND"
 
-        author_tags = article_soup.find_all(
-            class_=re.compile(r'post_author', re.I))
-        authors = [
-            tag.get_text(
-                strip=True) for tag in author_tags if tag.get_text(
-                strip=True)]
+        author_tags = article_soup.find_all(class_=re.compile(r"post_author", re.I))
+        authors = [tag.get_text(strip=True) for tag in author_tags if tag.get_text(strip=True)]
         if not authors:
             authors = ["NOT FOUND"]
         self.article.author = authors
 
-        byline = article_soup.find('p', class_='post-byline')
-        if byline and 'Опубликовано:' in byline.text:
-            date_raw = byline.text.strip().split('Опубликовано:')[
-                1].split('|')[0].strip()
+        byline = article_soup.find("p", class_="post-byline")
+        if byline and "Опубликовано:" in byline.text:
+            date_raw = byline.text.strip().split("Опубликовано:")[1].split("|")[0].strip()
             self.article.date = self.unify_date_format(date_raw)
 
         topics = []
-        category_li = article_soup.find('ul', class_='meta-single')
+        category_li = article_soup.find("ul", class_="meta-single")
         if category_li:
-            category_links = category_li.find_all('a', rel='category tag')
+            category_links = category_li.find_all("a", rel="category tag")
             topics = [a.text.strip() for a in category_links]
 
         self.article.topics = topics
@@ -390,9 +393,18 @@ class HTMLParser:
             datetime.datetime: Datetime object
         """
         months_ru = {
-            'января': '01', 'февраля': '02', 'марта': '03', 'апреля': '04',
-            'мая': '05', 'июня': '06', 'июля': '07', 'августа': '08',
-            'сентября': '09', 'октября': '10', 'ноября': '11', 'декабря': '12'
+            "января": "01",
+            "февраля": "02",
+            "марта": "03",
+            "апреля": "04",
+            "мая": "05",
+            "июня": "06",
+            "июля": "07",
+            "августа": "08",
+            "сентября": "09",
+            "октября": "10",
+            "ноября": "11",
+            "декабря": "12",
         }
 
         parts = date_str.strip().split()
@@ -401,8 +413,7 @@ class HTMLParser:
         year = parts[2]
         time = parts[4]
 
-        dt = datetime.datetime.strptime(
-            f'{year}-{month}-{day} {time}', '%Y-%m-%d %H:%M')
+        dt = datetime.datetime.strptime(f"{year}-{month}-{day} {time}", "%Y-%m-%d %H:%M")
         return dt
 
     def parse(self) -> Union[Article, bool, list]:
@@ -414,7 +425,7 @@ class HTMLParser:
         """
         try:
             response = make_request(self.full_url, self.config)
-            article_soup = BeautifulSoup(response.text, 'html.parser')
+            article_soup = BeautifulSoup(response.text, "html.parser")
             self._fill_article_with_meta_information(article_soup)
             self._fill_article_with_text(article_soup)
             return self.article
@@ -426,6 +437,7 @@ class HTMLParser:
             # Handle case where BeautifulSoup parsing or other attribute access fails
             print(f"Attribute error when parsing article {self.full_url}: {e}")
             return False
+
 
 def prepare_environment(base_path: Union[pathlib.Path, str]) -> None:
     """
@@ -452,10 +464,7 @@ def main() -> None:
     crawler.find_articles()
     article_urls = crawler.urls
     for i, url in enumerate(article_urls, start=1):
-        parser = HTMLParser(
-            full_url=url,
-            article_id=i,
-            config=configuration)
+        parser = HTMLParser(full_url=url, article_id=i, config=configuration)
         article = parser.parse()
         if isinstance(article, Article):
             to_raw(article)
