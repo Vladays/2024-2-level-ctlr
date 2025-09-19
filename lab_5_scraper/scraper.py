@@ -73,22 +73,9 @@ class Config:
         Args:
             path_to_config (pathlib.Path): Path to configuration.
         """
-        self._seed_urls: list[str]
-        self._num_articles: int
-        self._headers: dict[str, str]
-        self._encoding: str
-        self._timeout: int
-        self._should_verify_certificate: bool
-        self._headless_mode: bool
+        self.path_to_config = path_to_config
         self._config_data = self._extract_config_content()
         self._validate_config_content()
-        self._seed_urls = self._config_data.seed_urls
-        self._num_articles = self._config_data.total_articles
-        self._headers = self._config_data.headers
-        self._encoding = self._config_data.encoding
-        self._timeout = self._config_data.timeout
-        self._should_verify_certificate = self._config_data.should_verify_certificate
-        self._headless_mode = self._config_data.headless_mode
         self.url_pattern = re.compile(
             r'^https://www\.kchetverg\.ru/\d{4}/\d{2}/\d{2}/[\w\-]+/?$')
 
