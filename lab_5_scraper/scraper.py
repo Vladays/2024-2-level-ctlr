@@ -84,7 +84,7 @@ class Config:
         self.path_to_config = path_to_config
         config_dto = self._extract_config_content()
         self._seed_urls = config_dto.seed_urls
-        self._total_articles = config_dto.total_articles
+        self._num_articles = config_dto.total_articles
         self._headers = config_dto.headers
         self._encoding = config_dto.encoding
         self._timeout = config_dto.timeout
@@ -123,9 +123,9 @@ class Config:
             if not re.match(url_pattern, url):
                 raise IncorrectSeedURLError(f"Invalid seed URL: {url}")
 
-        if not isinstance(self._total_articles, int) or self._total_articles < 1:
+        if not isinstance(self._num_articles, int) or self._num_articles < 1:
             raise IncorrectNumberOfArticlesError("total_articles must be an integer >= 1")
-        if self._total_articles > NUM_ARTICLES_UPPER_LIMIT:
+        if self._num_articles > NUM_ARTICLES_UPPER_LIMIT:
             raise NumberOfArticlesOutOfRangeError(
                 f"total_articles must be <= {NUM_ARTICLES_UPPER_LIMIT}"
             )
@@ -166,7 +166,7 @@ class Config:
         Returns:
             int: Total number of articles to scrape
         """
-        return self._total_articles
+        return self._num_articles
 
     def get_headers(self) -> dict[str, str]:
         """
