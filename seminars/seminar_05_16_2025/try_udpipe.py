@@ -17,19 +17,12 @@ from pathlib import Path
 try:
     import spacy
     import spacy_udpipe
-<<<<<<< HEAD
     from spacy_conll import ConllParser  # type: ignore[import-not-found]
 
 except ImportError:
     print("No libraries installed. Failed to import.")
 
 from core_utils.constants import PROJECT_ROOT
-=======
-except ImportError:
-    print("No libraries installed. Failed to import.")
-
-from core_utils.constants import UDPIPE_MODEL_PATH
->>>>>>> parent of 8aa625a (Revert "[SYNC] [WW20] [SEMINARS] udpipe (#74)")
 from core_utils.pipeline import AbstractCoNLLUAnalyzer
 
 
@@ -154,7 +147,6 @@ def export_conllu_annotation(annotation: str, path: Path) -> None:
         annotation_file.write("\n")
 
 
-<<<<<<< HEAD
 def analyze_conllu_text(analyzer: spacy.Language, conllu_text: str) -> None:
     """
     6. Analyze CONLL-U text and return POS frequency using the UDPipe analyzer.
@@ -175,15 +167,12 @@ def analyze_conllu_text(analyzer: spacy.Language, conllu_text: str) -> None:
     print(first_token.pos_)
 
 
-=======
->>>>>>> parent of 8aa625a (Revert "[SYNC] [WW20] [SEMINARS] udpipe (#74)")
 def main() -> None:
     """
     Entrypoint for a seminar's listing
     """
     # 1. Read the UDPipe model
     #    It is pre-downloaded for you from https://universaldependencies.org/
-<<<<<<< HEAD
     udpipe_model = load_model(
         PROJECT_ROOT
         / "lab_6_pipeline"
@@ -191,9 +180,6 @@ def main() -> None:
         / "model"
         / "russian-syntagrus-ud-2.0-170801.udpipe"
     )
-=======
-    udpipe_model = load_model(UDPIPE_MODEL_PATH)
->>>>>>> parent of 8aa625a (Revert "[SYNC] [WW20] [SEMINARS] udpipe (#74)")
     assert isinstance(udpipe_model, spacy.Language)
 
     # 2. Explore the loaded UDPipe model and explain
@@ -202,13 +188,8 @@ def main() -> None:
     print(model_summary)
 
     # 3. Add CoNLL-U formatting pipeline to the model
-<<<<<<< HEAD
     analyzer = enable_conllu_formatting(udpipe_model)
     model_summary = explore_model(analyzer)
-=======
-    enable_conllu_formatting(udpipe_model)
-    model_summary = explore_model(udpipe_model)
->>>>>>> parent of 8aa625a (Revert "[SYNC] [WW20] [SEMINARS] udpipe (#74)")
     print(model_summary)
     assert isinstance(model_summary, dict)
     assert "conll_formatter" in model_summary["summary"]
@@ -223,15 +204,12 @@ def main() -> None:
     conllu_file_path = Path("analyzed_text.conllu")
     export_conllu_annotation(annotation, conllu_file_path)
 
-<<<<<<< HEAD
     # 6. Read the file and analyze it
     with open(conllu_file_path, "r", encoding="utf-8") as f:
         conllu_text = f.read()
 
     analyze_conllu_text(analyzer, conllu_text)
 
-=======
->>>>>>> parent of 8aa625a (Revert "[SYNC] [WW20] [SEMINARS] udpipe (#74)")
 
 if __name__ == "__main__":
     main()
