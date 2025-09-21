@@ -37,10 +37,12 @@ class InconsistentDatasetError(Exception):
     - some files are empty
     """
 
+
 class EmptyFileError(Exception):
     """
     Raised when a file is unexpectedly empty.
     """
+
 
 class CorpusManager:
     """
@@ -56,7 +58,7 @@ class CorpusManager:
         """
         self._path_to_raw_txt_data = path_to_raw_txt_data
         self._storage: dict[int, Article] = {}
-        # self._validate_dataset()
+        self._validate_dataset()
         self._scan_dataset()
 
     def _validate_dataset(self) -> None:
@@ -85,7 +87,7 @@ class CorpusManager:
 
         for f in files:
             if f.stat().st_size == 0:
-                raise EmptyFileError(f"File {f} is empty")
+                raise InconsistentDatasetError(f"File {f} is empty")
 
     def _scan_dataset(self) -> None:
         """
@@ -93,7 +95,9 @@ class CorpusManager:
         """
         for raw_file in self._path_to_raw_txt_data.glob("*_raw.txt"):
             article_id = int(raw_file.stem.split("_")[0])
-            self._storage[article_id] = Article(url=None, article_id=article_id)
+            article = Article(url=None, article_id=article_id)
+            from_raw(raw_file, article)
+            self._storage[article_id] = article
 
     def get_articles(self) -> dict:
         """
@@ -128,8 +132,6 @@ class TextProcessingPipeline(PipelineProtocol):
         Perform basic preprocessing and write processed text to files.
         """
         for article in self._corpus.get_articles().values():
-
-            from_raw(article.get_raw_text_path(), article)
 
             article.text = article.get_cleaned_text()
             to_cleaned(article)
@@ -175,7 +177,7 @@ class UDPipeAnalyzer(LibraryWrapper):
             nlp.add_pipe(
                 "conll_formatter",
                 last=True,
-                config={"conversion_maps": {"XPOS": {"": "_"}}},
+                config={"conversion_maps": {"XPOS": {"": "_"}}, "include_headers": True},
             )
         return nlp
 
@@ -204,7 +206,7 @@ class UDPipeAnalyzer(LibraryWrapper):
         """
         conllu_path = article.get_file_path(ArtifactType.UDPIPE_CONLLU)
         conllu_text = article.get_conllu_info()
-        conllu_path.write_text(conllu_text, encoding="utf-8")
+        conllu_path.write_text(conllu_text + "\n", encoding="utf-8")
 
     def from_conllu(self, article: Article) -> UDPipeDocument:
         """
