@@ -82,6 +82,7 @@ class Config:
             path_to_config (pathlib.Path): Path to configuration.
         """
         self.path_to_config = path_to_config
+        self._validate_config_content()
         config_dto = self._extract_config_content()
         self._seed_urls = config_dto.seed_urls
         self._num_articles = config_dto.total_articles
@@ -90,7 +91,6 @@ class Config:
         self._timeout = config_dto.timeout
         self._should_verify_certificate = config_dto.should_verify_certificate
         self._headless_mode = config_dto.headless_mode
-        self._validate_config_content()
 
     def _extract_config_content(self) -> ConfigDTO:
         """
@@ -116,38 +116,39 @@ class Config:
         """
         Ensure configuration parameters are not corrupt.
         """
+        config_dto = self._extract_config_content()
         url_pattern = re.compile(r"https?://(www\.)?.+")
-        if not isinstance(self._seed_urls, list) or not self._seed_urls:
+        if not isinstance(config_dto.seed_urls, list) or not config_dto.seed_urls:
             raise IncorrectSeedURLError("seed_urls must be a non-empty list")
-        for url in self._seed_urls:
+        for url in config_dto.seed_urls:
             if not re.match(url_pattern, url):
                 raise IncorrectSeedURLError(f"Invalid seed URL: {url}")
 
-        if not isinstance(self._num_articles, int) or self._num_articles < 1:
+        if not isinstance(config_dto.total_articles, int) or config_dto.total_articles < 1:
             raise IncorrectNumberOfArticlesError("total_articles must be an integer >= 1")
-        if self._num_articles > NUM_ARTICLES_UPPER_LIMIT:
+        if config_dto.total_articles > NUM_ARTICLES_UPPER_LIMIT:
             raise NumberOfArticlesOutOfRangeError(
                 f"total_articles must be <= {NUM_ARTICLES_UPPER_LIMIT}"
             )
 
-        if not isinstance(self._headers, dict):
+        if not isinstance(config_dto.headers, dict):
             raise IncorrectHeadersError("headers must be a dictionary")
 
-        if not isinstance(self._encoding, str) or not self._encoding:
+        if not isinstance(config_dto.encoding, str) or not config_dto.encoding:
             raise IncorrectEncodingError("encoding must be a non-empty string")
 
-        if not isinstance(self._timeout, int) or not (
-            TIMEOUT_LOWER_LIMIT <= self._timeout < TIMEOUT_UPPER_LIMIT
+        if not isinstance(config_dto.timeout, int) or not (
+            TIMEOUT_LOWER_LIMIT <= config_dto.timeout < TIMEOUT_UPPER_LIMIT
         ):
             raise IncorrectTimeoutError(
                 f"""timeout must be an integer in range [{TIMEOUT_LOWER_LIMIT},
                 {TIMEOUT_UPPER_LIMIT})"""
             )
 
-        if not isinstance(self._should_verify_certificate, bool):
+        if not isinstance(config_dto.should_verify_certificate, bool):
             raise IncorrectVerifyError("should_verify_certificate must be a boolean")
 
-        if not isinstance(self._headless_mode, bool):
+        if not isinstance(config_dto.headless_mode, bool):
             raise IncorrectVerifyError("headless_mode must be a boolean")
 
     def get_seed_urls(self) -> list[str]:
@@ -268,11 +269,9 @@ class Crawler:
         pattern = re.compile(r"^https://www\.kchetverg\.ru/\d{4}/\d{2}/\d{2}/[\w\-]+/?$")
         href = article_bs.get("href", "")
 
-        href = article_bs.get("href")
-        if not isinstance(href, str):
-            return ""
         if pattern.match(href):
             return href
+
         return ""
 
     def find_articles(self) -> None:
