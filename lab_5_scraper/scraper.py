@@ -269,7 +269,7 @@ class Crawler:
         pattern = re.compile(r"^https://www\.kchetverg\.ru/\d{4}/\d{2}/\d{2}/[\w\-]+/?$")
         href = article_bs.get("href", "")
 
-        if pattern.match(href):
+        if isinstance(href, str) and pattern.match(href):
             return href
 
         return ""
