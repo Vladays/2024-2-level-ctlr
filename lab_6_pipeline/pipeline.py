@@ -133,15 +133,15 @@ class TextProcessingPipeline(PipelineProtocol):
         """
         for article in self._corpus.get_articles().values():
 
-            article.text = article.get_cleaned_text()
-            to_cleaned(article)
-
-            conllu_docs = self._analyzer.analyze([article.get_raw_text()])
+            conllu_docs = self._analyzer.analyze([article.text])
             if conllu_docs:
                 conllu_text = conllu_docs[0]
                 article.set_conllu_info(conllu_text)
 
                 self._analyzer.to_conllu(article)
+
+            article.text = article.get_cleaned_text()
+            to_cleaned(article)
 
 
 class UDPipeAnalyzer(LibraryWrapper):
@@ -173,12 +173,11 @@ class UDPipeAnalyzer(LibraryWrapper):
             / "russian-syntagrus-ud-2.0-170801.udpipe"
         )
         nlp = spacy_udpipe.load_from_path(lang="ru", path=str(path_model))
-        if "conllu_formatter" not in nlp.pipe_names:
-            nlp.add_pipe(
-                "conll_formatter",
-                last=True,
-                config={"conversion_maps": {"XPOS": {"": "_"}}, "include_headers": True},
-            )
+        nlp.add_pipe(
+            "conll_formatter",
+            last=True,
+            config={"include_headers": True},
+        )
         return nlp
 
     def analyze(self, texts: list[str]) -> list[UDPipeDocument | str]:
