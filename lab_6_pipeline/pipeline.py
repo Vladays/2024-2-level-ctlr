@@ -37,6 +37,10 @@ class InconsistentDatasetError(Exception):
     - some files are empty
     """
 
+class EmptyFileError(Exception):
+    """
+    Raised when a file is unexpectedly empty.
+    """
 
 class CorpusManager:
     """
@@ -81,7 +85,7 @@ class CorpusManager:
 
         for f in files:
             if f.stat().st_size == 0:
-                raise InconsistentDatasetError(f"File {f} is empty")
+                raise EmptyFileError(f"File {f} is empty")
 
     def _scan_dataset(self) -> None:
         """
